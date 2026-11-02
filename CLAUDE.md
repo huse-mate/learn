@@ -22,7 +22,9 @@ The pieces depend on each other through tool names and file conventions rather t
 
 - **`.claude/skills/teach/`** is the core of the system: the probe → plan → teach process and the two teaching principles.
 - **`.claude/skills/visualize/`** has the main agent brief `mermaid-maker` or `svg-maker` through the `Agent` tool, then embed the returned filename as `![[viz-<slug>-<timestamp>.png|500]]`.
-- **`.claude/agents/`** defines `researcher`, `svg-maker` and `mermaid-maker`.
+- **`.claude/skills/exam-material/`** extracts uploaded files in `material/<subject>/` (gitignored) to markdown in its `extracted/` folder. `scripts/inventory.mjs` converts Office files to PDF with `soffice` and decides what's left. `material-classifier` records each upload as study material or exam in `extracted/_catalog.json`, grouping images of one exam and group. One `material-extractor` then runs per PDF chunk or exam, writing to `extracted/study/` or `extracted/exams/`. Page markers (`<!-- page: N -->`) and embedded figures drive its completeness check. Figures are cropped from the source through `mcp/figure-server.ts`, never redrawn, because fidelity to the original is the point.
+  `scripts/contents.mjs` generates `extracted/_contents.md` from those files, and `material-researcher` answers only from `extracted/`, citing file and page.
+- **`.claude/agents/`** defines `researcher`, `material-researcher`, `material-classifier`, `material-extractor`, `svg-maker` and `mermaid-maker`.
 - **`mcp/quiz-server.ts`** is the `learn` server from `.mcp.json`, providing `mcp__learn__quiz`.
 - **`mcp/visual-server.ts`** provides the `write_*`/`edit_*`/`render_*` tools. Each maker declares it in its own frontmatter.
 - **`.claude/hooks/md-log.ts`** mirrors the session into a linked note. `/md-log [filepath]` (a menu of recent vault notes when no path is given) and `/md-unlog` call it, and hooks in `.claude/settings.json` run its `sync`.

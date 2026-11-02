@@ -1,7 +1,7 @@
 {
   "enabledMcpjsonServers": ["learn"],
   "permissions": {
-    "allow": ["mcp__learn__quiz"]
+    "allow": ["mcp__learn__quiz", "mcp__figures__crop_figure"]
   },
   "hooks": {
     "UserPromptSubmit": [

@@ -21,4 +21,5 @@ Copy this folder into your Obsidian vault, run `npm install` once in `mcp/`, and
 - [Obsidian](https://obsidian.md)
 - Node.js 22.18 or newer
 - `rsvg-convert` or ImageMagick for SVG figures
+- `poppler` and ImageMagick for extracting study material, plus LibreOffice for Word and PowerPoint files
 - Chrome or Chromium for Mermaid figures (add its path to `CHROME_CANDIDATES` in `mcp/common.ts` if it isn't found)

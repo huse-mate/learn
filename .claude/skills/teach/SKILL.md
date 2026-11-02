@@ -76,6 +76,7 @@ Tools used throughout:
 | A question with a right answer | `quiz` (the `mcp__learn__quiz` tool) |
 | A question with no right answer | `AskUserQuestion` |
 | Verifying a fact or scoping a topic | The `researcher` subagent, through the `Agent` tool. It sees nothing of this conversation, so put everything it needs in the prompt. |
+| Verifying a fact against his uploaded material, or scoping a lesson on it | The `material-researcher` subagent, through the `exam-material` skill. Prefer it over `researcher` when he is preparing from his own material. |
 | A picture | The `visualize` skill |
 
 If `quiz` returns `unavailable`, or returns `cancelled` without him having had time to answer, the popup could not open. It needs a terminal session, so tell him rather than treating it as a skip.

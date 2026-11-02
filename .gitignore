@@ -21,3 +21,6 @@ __pycache__/
 viz/
 .claude/md-log.state.json*
 .claude/settings.local.json
+
+# Uploaded study material
+material/
