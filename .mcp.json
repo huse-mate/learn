@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "learn": {
+      "command": "node",
+      "args": ["${CLAUDE_PROJECT_DIR:-.}/mcp/quiz-server.ts"]
+    }
+  }
+}

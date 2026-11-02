@@ -16,3 +16,8 @@ __pycache__/
 # Runtime state
 .memory/
 *.log
+
+# Lesson runtime
+viz/
+.claude/md-log.state.json*
+.claude/settings.local.json

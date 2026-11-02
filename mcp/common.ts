@@ -1,16 +1,16 @@
 /**
- * Shared helpers for the visual-tools authoring loops (mermaid_tools.ts,
- * svg_tools.ts): a subprocess runner, a per-session managed source file, an
+ * Shared helpers for the visual authoring loops (visual-server.ts):
+ * a subprocess runner, a per-session managed source file, an
  * exact-match editor (pi-edit semantics), and publishing a chosen render into
- * <cwd>/viz with a unique filename.
+ * <project>/viz with a unique filename.
  *
- * Each tool file keeps its OWN session state (importing the type/helpers here),
+ * Each kind keeps its OWN session state (importing the type/helpers here),
  * so mermaid and svg never share a source file.
  */
 
 import { spawn } from "node:child_process"
 import { tmpdir } from "node:os"
-import { basename, dirname, join } from "node:path"
+import { dirname, join } from "node:path"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 
 // rsvg-convert lives under MacPorts (/opt/local/bin); magick/gs under
@@ -26,6 +26,7 @@ export const FILES_DIRNAME = "viz"
 export const CHROME_CANDIDATES = [
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  "/usr/bin/chromium",
 ]
 
 export function findChrome(): string | undefined {
@@ -130,9 +131,9 @@ export function snippetAround(content: string, index: number, contextLines = 3):
   return out.join("\n")
 }
 
-/** Copy a rendered PNG into <cwd>/viz with a unique, slugified name. */
+/** Copy a rendered PNG into <project>/viz with a unique, slugified name. */
 export function publish(pngPath: string, slug: string): { filename: string; path: string } {
-  const filesDir = join(process.cwd(), FILES_DIRNAME)
+  const filesDir = join(process.env.CLAUDE_PROJECT_DIR || process.cwd(), FILES_DIRNAME)
   mkdirSync(filesDir, { recursive: true })
   const clean =
     slug
@@ -145,4 +146,4 @@ export function publish(pngPath: string, slug: string): { filename: string; path
   return { filename, path: dest }
 }
 
-export { basename, dirname, join, existsSync, mkdirSync, readFileSync, writeFileSync }
+export { dirname, join, existsSync, mkdirSync, readFileSync, writeFileSync }

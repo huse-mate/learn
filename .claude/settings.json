@@ -1,0 +1,29 @@
+{
+  "enabledMcpjsonServers": ["learn"],
+  "permissions": {
+    "allow": ["mcp__learn__quiz"]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/md-log.ts\" sync" }]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "mcp__learn__quiz|AskUserQuestion",
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/md-log.ts\" sync" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/md-log.ts\" sync" }]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/md-log.ts\" sync" }]
+      }
+    ]
+  }
+}
