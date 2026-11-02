@@ -15,6 +15,8 @@ import { z } from "zod"
 import { logQuizAnswer, logQuizQuestion, type QuizLogResult } from "../.claude/hooks/md-log.ts"
 
 const DONT_KNOW_LABEL = "I don't know"
+// The SDK fails an elicitation after 60s by default, and he may step away mid-question.
+const ANSWER_TIMEOUT_MS = 24 * 60 * 60 * 1000
 
 interface QuizOption {
   label: string
@@ -134,7 +136,7 @@ server.registerTool(
           },
           required: ["answer"],
         },
-      })
+      }, { timeout: ANSWER_TIMEOUT_MS })
     } catch (e) {
       const message = `quiz requires interactive elicitation: ${(e as Error).message}`
       return finish({ status: "unavailable", message }, `status: unavailable\n${message}`)

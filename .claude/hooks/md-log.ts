@@ -28,6 +28,9 @@ const STATE_PATH = path.join(PROJECT_DIR, ".claude", "md-log.state.json")
 const LOCK_PATH = `${STATE_PATH}.lock`
 const LOCK_TIMEOUT_MS = 3000
 const NOTE_MENU_SIZE = 4 // AskUserQuestion shows at most four options
+const STOP_WAIT_MS = 5000
+const STOP_POLL_MS = 50
+const STOP_SETTLE_MS = 500 // used if the hook payload lacks last_assistant_message
 
 interface State {
   file: string | null
@@ -236,9 +239,47 @@ function unlink(): void {
   console.log(`Unlinked: ${path.basename(file)}`)
 }
 
+function sleep(ms: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+}
+
+/** The text of the transcript's newest assistant text block, if any. */
+function lastAssistantText(transcriptPath: string): string {
+  const lines = fs.readFileSync(transcriptPath, "utf8").split("\n")
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (!lines[i].includes('"assistant"')) continue
+    let entry
+    try {
+      entry = JSON.parse(lines[i])
+    } catch {
+      continue // a line still being written
+    }
+    if (entry.type !== "assistant" || entry.isSidechain) continue
+    const content = entry.message?.content
+    const text = (Array.isArray(content) ? content : []).filter((c: any) => c.type === "text").at(-1)?.text?.trim()
+    if (text) return text
+  }
+  return ""
+}
+
+// Stop fires about 100ms after the final text, before Claude Code has flushed it
+// to the transcript. Without this wait that text only reaches the note on the
+// next prompt.
+function waitForFinalMessage(hook: any): void {
+  const message = String(hook.last_assistant_message ?? "").trim()
+  if (!message) return sleep(STOP_SETTLE_MS)
+  const deadline = Date.now() + STOP_WAIT_MS
+  while (Date.now() < deadline) {
+    const text = fs.existsSync(hook.transcript_path) ? lastAssistantText(hook.transcript_path) : ""
+    if (text && message.endsWith(text)) return
+    sleep(STOP_POLL_MS)
+  }
+}
+
 function sync(): void {
   const hook = JSON.parse(fs.readFileSync(0, "utf8"))
   if (hook.agent_id || !hook.transcript_path || !hook.session_id) return // subagents stay out of the lesson
+  if (hook.hook_event_name === "Stop" && readState().file) waitForFinalMessage(hook)
   withLock(() => {
     const state = readState()
     if (!state.file || !fs.existsSync(hook.transcript_path)) return

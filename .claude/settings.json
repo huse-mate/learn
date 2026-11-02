@@ -25,5 +25,6 @@
         "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/md-log.ts\" sync" }]
       }
     ]
-  }
+  },
+  "attribution": false
 }
