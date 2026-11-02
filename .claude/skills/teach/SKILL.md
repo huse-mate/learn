@@ -2,6 +2,7 @@
 name: teach
 description: Teaches anything so it locks in and is understood, not just memorized, using two teaching principles he has personally verified to work for years. Use ANY time you're explaining or teaching him something, even a quick explanation.
 argument-hint: "[topic]"
+allowed-tools: Bash(node *inventory.mjs*)
 ---
 
 # Teaching
@@ -75,8 +76,8 @@ Tools used throughout:
 |---|---|
 | A question with a right answer | `quiz` (the `mcp__learn__quiz` tool) |
 | A question with no right answer | `AskUserQuestion` |
-| Verifying a fact or scoping a topic | The `researcher` subagent, through the `Agent` tool. It sees nothing of this conversation, so put everything it needs in the prompt. |
-| Verifying a fact against his uploaded material, or scoping a lesson on it | The `material-researcher` subagent, through the `exam-material` skill. Prefer it over `researcher` when he is preparing from his own material. |
+| Verifying a fact or scoping a topic in any other session | The `researcher` subagent, through the `Agent` tool. It sees nothing of this conversation, so put everything it needs in the prompt. |
+| Verifying a fact or scoping a lesson in a material session (see Phase 1b) | The `material-researcher` subagent, through Phase 2 of the `exam-material` skill |
 | A picture | The `visualize` skill |
 
 If `quiz` returns `unavailable`, or returns `cancelled` without him having had time to answer, the popup could not open. It needs a terminal session, so tell him rather than treating it as a skip.
@@ -99,6 +100,18 @@ You can't teach into his zone of proximal development without knowing where its 
 Do not advance to Phase 2 until, for each goal-relevant strand, you can state concretely both what he has and where it ends. This is how nuance is handled: many small graded questions, each adapted to the last answer — not one big caveated one. Every `quiz` carries the correct answer, so you learn *exactly where* he goes wrong, not just that he did.
 
 **1b. His learning goal — use `AskUserQuestion`.** Find out what he actually wants taught. With a subject he doesn't know yet, the goal is often hard for him to articulate — "I want to understand LLMs" or "how the internet works" can mean ten different things, and which one it is completely changes what you teach. Interrogate the vision until it's concrete. This has no right answer, so it's `AskUserQuestion`, never `quiz`.
+
+**Offer his uploaded material first.** These are the subjects he has uploaded:
+
+!`node "${CLAUDE_PROJECT_DIR}/.claude/skills/exam-material/scripts/inventory.mjs"`
+
+If `subjects` isn't empty, make your first goal question which source to learn from, with one option per subject and an option for not using any. Ask this even if he named a topic, because a topic alone doesn't say whether it's for his exam. If `subjects` is empty, skip this.
+
+If he picks a subject, this is a **material session**, and it changes where your facts come from:
+- Run the `exam-material` skill for that subject first if anything is unextracted.
+- `material-researcher` replaces `researcher` throughout this skill, including for accuracy checks and for scoping the field in Phase 2.
+- Plan around what the study material teaches and what the past exams ask.
+- If the material doesn't cover something, say so. Use `researcher` for it only after he agrees, and label what comes from outside his material.
 
 ### Phase 2 — Plan (think hard here)
 
