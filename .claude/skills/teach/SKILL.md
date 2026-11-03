@@ -80,6 +80,8 @@ Tools used throughout:
 | Verifying a fact or scoping a lesson in a material session (see Phase 1b) | The `material-researcher` subagent, through Phase 2 of the `exam-material` skill |
 | A picture | The `visualize` skill |
 
+Every `quiz` that follows lesson text in the same response repeats that text verbatim in its `lesson` field. Otherwise it can go missing from his linked note, because the transcript doesn't always keep text written before a tool call.
+
 If `quiz` returns `unavailable`, or returns `cancelled` without him having had time to answer, the popup could not open. It needs a terminal session, so tell him rather than treating it as a skip.
 
 **Accuracy is non-negotiable — verify, don't wing it from memory.** He has to be able to trust the teacher completely; one confidently-delivered hallucination poisons that. Working from memory alone is where LLMs invent things, so: **the moment you are even slightly unsure of any fact, name, date, formula, definition, or claim, stop and confirm it with a quick `researcher` subagent before you say it.** Pausing to verify is always acceptable — accuracy beats flow, every time. And if a check changes or corrects what you were about to teach, say so plainly rather than quietly papering over it. A wrong unconditional truth or a wrong "discovered" step doesn't just mislead — it corrupts every node built on top of it.

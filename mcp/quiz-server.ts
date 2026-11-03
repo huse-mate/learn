@@ -12,7 +12,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod"
-import { logQuizAnswer, logQuizQuestion, type QuizLogResult } from "../.claude/hooks/md-log.ts"
+import { logLesson, logQuizAnswer, logQuizQuestion, type QuizLogResult } from "../.claude/hooks/md-log.ts"
 
 const DONT_KNOW_LABEL = "I don't know"
 // The SDK fails an elicitation after 60s by default, and he may step away mid-question.
@@ -67,6 +67,10 @@ server.registerTool(
     inputSchema: {
       question: z.string().describe("The single quiz question to ask. Ask exactly one question per tool call."),
       details: z.string().optional().describe("Optional extra context or instructions shown under the question."),
+      lesson: z
+        .string()
+        .optional()
+        .describe("The lesson text you wrote just before this quiz, verbatim. Written to the linked note before the question."),
       options: z
         .array(
           z.object({
@@ -111,6 +115,7 @@ server.registerTool(
     const details = params.details?.trim() || undefined
     const explanation = params.explanation.trim()
     const labels = options.map((o, i) => `${i + 1}. ${o.label}`)
+    if (params.lesson?.trim()) logLesson(params.lesson)
     logQuizQuestion(params.question, details, options.map((o) => o.label))
 
     const finish = (result: QuizLogResult, text: string) => {

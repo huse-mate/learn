@@ -83,6 +83,10 @@ function appendToFile(file: string, text: string): void {
 
 // --- Formatting ---
 
+function claudeBlock(text: string): string {
+  return `> [!abstract] CLAUDE\n\n${text.trim()}`
+}
+
 function callout(type: string, title: string, bodyLines: string[]): string {
   const lines = [`> [!${type}] ${title}`]
   for (const line of bodyLines) lines.push(line.length === 0 ? ">" : `> ${line}`)
@@ -128,7 +132,7 @@ function entryBlocks(entry: any, state: State): string[] {
 
   if (entry.type === "assistant") {
     for (const c of Array.isArray(content) ? content : []) {
-      if (c.type === "text" && c.text.trim()) blocks.push(`> [!abstract] CLAUDE\n\n${c.text.trim()}`)
+      if (c.type === "text" && c.text.trim()) blocks.push(claudeBlock(c.text))
       if (c.type === "tool_use" && c.name === "AskUserQuestion") {
         state.pendingAsks.push(c.id)
         for (const q of c.input?.questions ?? []) {
@@ -152,6 +156,13 @@ function entryBlocks(entry: any, state: State): string[] {
 }
 
 // --- Quiz blocks, written by the quiz MCP server ---
+
+// Claude Code leaves text out of the transcript when its message carries a
+// thinking summary, so sync can't see it. The quiz server logs it from here.
+export function logLesson(text: string): void {
+  const { file } = readState()
+  if (file) appendToFile(file, claudeBlock(text))
+}
 
 export function logQuizQuestion(question: string, context: string | undefined, options: string[]): void {
   const { file } = readState()
@@ -291,7 +302,10 @@ function sync(): void {
     for (const line of bytes.subarray(offset, end).toString("utf8").split("\n")) {
       if (line.trim()) blocks.push(...entryBlocks(JSON.parse(line), state))
     }
-    if (blocks.length > 0) appendToFile(state.file, blocks.join("\n\n"))
+    // Text also passed as a quiz lesson may already be in the note.
+    const logged = fs.existsSync(state.file) ? fs.readFileSync(state.file, "utf8") : ""
+    const fresh = blocks.filter((b) => !b.startsWith("> [!abstract]") || !logged.includes(b))
+    if (fresh.length > 0) appendToFile(state.file, fresh.join("\n\n"))
     state.offsets[hook.session_id] = end
     writeState(state)
   })
